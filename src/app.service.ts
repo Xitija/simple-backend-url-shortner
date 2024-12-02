@@ -47,7 +47,8 @@ export class AppService {
   async getUrl(code: Prisma.UrlSchemaWhereUniqueInput) {
     const urlByCode = await this.getUrlByCode(code);
     if (urlByCode) {
-      return urlByCode;
+      await this.updateUrlClickCount({ where: { urlId: urlByCode.urlId }, data: { clicks: (urlByCode.clicks + 1) } })
+      return { ...urlByCode, clicks: urlByCode.clicks + 1 };
     } else {
       throw new NotFoundException("Url not found");
     }
@@ -65,5 +66,16 @@ export class AppService {
 
   async getUrlByCode(code: Prisma.UrlSchemaWhereUniqueInput) {
     return this.prisma.urlSchema.findUnique({ where: code })
+  }
+
+  async updateUrlClickCount(params: {
+    where: Prisma.UrlSchemaWhereUniqueInput,
+    data: Prisma.UrlSchemaUpdateInput
+  }) {
+    const { where, data } = params;
+    return this.prisma.urlSchema.update({
+      data,
+      where
+    })
   }
 }
